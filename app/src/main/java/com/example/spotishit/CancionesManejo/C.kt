@@ -16,47 +16,59 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-
+// Data class para representar una canción con su título, imagen y recurso de audio
 data class Cancion(
     val title: String,
     val imageResId: Int,
     val rawResId: Int
 )
 
+// ViewModel para controlar el reproductor ExoPlayer
 class ExoPlayerViewModel : ViewModel() {
+    // Flujo mutable para almacenar el ExoPlayer actual
     private val _exoPlayer: MutableStateFlow<ExoPlayer?> = MutableStateFlow(null)
+    // Flujo de solo lectura para el ExoPlayer
     val exoPlayer = _exoPlayer.asStateFlow()
 
+    // Lista de canciones disponibles
     private val listaCanciones = listOf(
         Cancion("Cambiar el mundo", R.drawable.cambiarelmundo, R.raw.cambiarelmundo),
         Cancion("Ganas", R.drawable.ganas, R.raw.ganas),
         Cancion("Guillao", R.drawable.guillao, R.raw.guillao),
         Cancion("Leonardo", R.drawable.leonardo, R.raw.leonardoflexxo),
-        Cancion("Moonlight", R.drawable.moonlight, R.raw.moonlight),
-
+        Cancion("Moonlight", R.drawable.moonlight, R.raw.moonlight)
     )
+    // Estado actual de la canción que se está reproduciendo
     private val _actual = MutableStateFlow(listaCanciones[0])
     val actual = _actual.asStateFlow()
 
+    // Duración total de la canción actual
     private val _duracion = MutableStateFlow(0)
     val duracion = _duracion.asStateFlow()
 
+    // Progreso de reproducción actual de la canción
     private val _progreso = MutableStateFlow(0)
     val progreso = _progreso.asStateFlow()
 
+    // Estado de repetición de canciones
     private val _repetir = MutableStateFlow(false)
     val repetir = _repetir.asStateFlow()
+
+    // Estado de reproducción aleatoria
     private val _random = MutableStateFlow(false)
     val random = _random.asStateFlow()
 
+    // Índice de la canción actual en la lista de canciones
     private var currentSongIndex = 0
 
+    // Método para crear el ExoPlayer
     fun crearExoPlayer(context: Context) {
         _exoPlayer.value = ExoPlayer.Builder(context).build()
         _exoPlayer.value!!.prepare()
         _exoPlayer.value!!.playWhenReady = true
     }
 
+    // Método para reproducir música
     fun hacerSonarMusica(context: Context) {
         val cancion = MediaItem.fromUri(obtenerRuta(context, _actual.value.rawResId))
         _exoPlayer.value!!.setMediaItem(cancion)
@@ -80,11 +92,13 @@ class ExoPlayerViewModel : ViewModel() {
         })
     }
 
+    // Método para liberar recursos cuando se destruye el ViewModel
     override fun onCleared() {
         _exoPlayer.value!!.release()
         super.onCleared()
     }
 
+    // Método para pausar o reanudar la reproducción de música
     fun PausarOSeguirMusica() {
         if (_exoPlayer.value!!.isPlaying) {
             _exoPlayer.value!!.pause()
@@ -93,6 +107,7 @@ class ExoPlayerViewModel : ViewModel() {
         }
     }
 
+    // Método para cambiar la canción actual
     fun CambiarCancion(context: Context) {
         _exoPlayer.value?.stop()
         _exoPlayer.value?.clearMediaItems()
@@ -125,14 +140,17 @@ class ExoPlayerViewModel : ViewModel() {
         }
     }
 
+    // Método para alternar el modo de repetición de canciones
     fun toglearRepetir() {
         _repetir.value = !_repetir.value
     }
 
+    // Método para alternar el modo de reproducción aleatoria
     fun toglearRandom() {
         _random.value = !_random.value
     }
 
+    // Método para retroceder a la canción anterior
     fun retrocederCancion(context: Context) {
         _exoPlayer.value!!.stop()
         _exoPlayer.value!!.clearMediaItems()
@@ -145,6 +163,7 @@ class ExoPlayerViewModel : ViewModel() {
         _exoPlayer.value!!.playWhenReady = true
     }
 
+    // Método para ir a una posición específica de la canción actual
     fun irAPosicion(nuevaPosicion: Int) {
         _exoPlayer.value?.seekTo(nuevaPosicion.toLong())
     }
